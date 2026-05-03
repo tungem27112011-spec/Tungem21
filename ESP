@@ -1,0 +1,75 @@
+-- ESP GUI FIX (draggable + không chắn màn hình)
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local espEnabled = false
+local espObjects = {}
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.Size = UDim2.new(0, 180, 0, 90)
+Frame.Position = UDim2.new(0, 20, 0.3, 0) -- 👈 lệch sang trái, không giữa màn hình
+Frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Frame.Active = true
+Frame.Draggable = true -- 👈 kéo được
+
+local Button = Instance.new("TextButton")
+Button.Parent = Frame
+Button.Size = UDim2.new(0.8, 0, 0.5, 0)
+Button.Position = UDim2.new(0.1, 0, 0.25, 0)
+Button.Text = "ESP: OFF"
+Button.BackgroundColor3 = Color3.fromRGB(200,50,50)
+Button.TextColor3 = Color3.new(1,1,1)
+
+-- ESP tạo
+local function createESP(player)
+    if player == LocalPlayer then return end
+    if not player.Character then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESP_" .. player.Name
+    highlight.FillColor = Color3.fromRGB(255,0,0)
+    highlight.OutlineColor = Color3.fromRGB(255,255,255)
+    highlight.FillTransparency = 0.5
+    highlight.Parent = player.Character
+
+    espObjects[player] = highlight
+end
+
+local function removeESP()
+    for _,v in pairs(espObjects) do
+        if v then v:Destroy() end
+    end
+    espObjects = {}
+end
+
+Button.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+
+    if espEnabled then
+        Button.Text = "ESP: ON"
+        Button.BackgroundColor3 = Color3.fromRGB(50,200,50)
+
+        for _,p in pairs(Players:GetPlayers()) do
+            createESP(p)
+        end
+    else
+        Button.Text = "ESP: OFF"
+        Button.BackgroundColor3 = Color3.fromRGB(200,50,50)
+        removeESP()
+    end
+end)
+
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function()
+        task.wait(1)
+        if espEnabled then
+            createESP(p)
+        end
+    end)
+end)
