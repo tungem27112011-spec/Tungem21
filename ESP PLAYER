@@ -1,0 +1,73 @@
+-- ESP PLAYER GUI
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local espEnabled = false
+local espObjects = {}
+
+-- Tạo GUI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+local Button = Instance.new("TextButton", Frame)
+
+Frame.Size = UDim2.new(0, 200, 0, 100)
+Frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+
+Button.Size = UDim2.new(0.8, 0, 0, 40)
+Button.Position = UDim2.new(0.1, 0, 0.3, 0)
+Button.Text = "ESP: OFF"
+Button.BackgroundColor3 = Color3.fromRGB(200,50,50)
+Button.TextColor3 = Color3.new(1,1,1)
+
+-- Hàm tạo ESP
+function createESP(player)
+    if player == LocalPlayer then return end
+    if not player.Character then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESP_" .. player.Name
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    highlight.OutlineColor = Color3.fromRGB(255,255,255)
+    highlight.FillTransparency = 0.5
+    highlight.Parent = player.Character
+
+    espObjects[player] = highlight
+end
+
+-- Xóa ESP
+function removeESP()
+    for _, v in pairs(espObjects) do
+        if v then v:Destroy() end
+    end
+    espObjects = {}
+end
+
+-- Toggle ESP
+Button.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+
+    if espEnabled then
+        Button.Text = "ESP: ON"
+        Button.BackgroundColor3 = Color3.fromRGB(50,200,50)
+
+        for _, player in pairs(Players:GetPlayers()) do
+            createESP(player)
+        end
+    else
+        Button.Text = "ESP: OFF"
+        Button.BackgroundColor3 = Color3.fromRGB(200,50,50)
+        removeESP()
+    end
+end)
+
+-- Khi player mới vào
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if espEnabled then
+            task.wait(1)
+            createESP(player)
+        end
+    end)
+end)
